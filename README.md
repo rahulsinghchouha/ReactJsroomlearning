@@ -413,6 +413,78 @@ Data stored in sessionStorage is accessible to all scripts running on the same p
 Sensitive Information:
 
 It is generally not recommended to store sensitive information (such as authentication tokens, passwords, or personal data) in sessionStorage because of the risk of exposure through XSS attacks.
+==============================>
+return anything besides a function, which is used for clean-up.
+
+It looks like you wrote useEffect(async () => ...) or returned a Promise. Instead, write the async function inside your effect and call it immediately:
+
+useEffect(() => {
+ async function fetchData() {
+  // You can await here
+  const response = await MyAPI.getData(someId);
+  // ...
+ }
+ fetchData();
+}, [someId]); // Or [] if effect doesn't need props or stat why this error and how to solve it
+
+
+ड्राफ़्ट दिखाएँ
+
+
+Understanding the Error and Solution
+The Error
+The error arises because useEffect expects a function as its argument. When you return an async function or a Promise, you're not returning a function but rather the result of the function or Promise.
+
+The Solution
+To address this, you should define an async function within the useEffect hook and call it immediately. This ensures that the async operation is executed within the effect's scope and any necessary cleanup can be performed.
+
+Code Example
+JavaScript
+import { useEffect, useState } from 'react';
+
+function MyComponent() {
+  const [data, setData] = useState(null);
+
+  useEffect(() => {
+    async function fetchData()   
+ {
+      try {
+        const response = await MyAPI.getData(someId);
+        setData(response.data);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    }
+
+    fetchData();
+
+    // Cleanup function (optional)
+    return () => {
+      // Perform cleanup actions here, if necessary
+      console.log('Cleaning up');
+    };
+  }, [someId]); // Dependency array
+
+  // ... rest of your component
+}
+कोड का इस्तेमाल सावधानी से करें.
+
+Explanation
+Import necessary hooks: Import useEffect and useState from React.
+Define state: Create a state variable data to store the fetched data.
+Use useEffect:
+Define an async function fetchData within the useEffect hook.
+Inside fetchData, perform the asynchronous operation (e.g., fetching data).
+Call fetchData to initiate the data fetching.
+Optionally, return a cleanup function to perform actions before the component unmounts.
+Dependency array: The dependency array [someId] specifies that the effect should re-run whenever someId changes. Adjust the array based on your component's logic.
+Additional Considerations
+Error handling: Include error handling within the fetchData function to handle potential issues during data fetching.
+Cleanup function: Use the cleanup function to cancel requests, clear intervals, or perform other necessary cleanup actions before the component unmounts.
+Dependency array: Carefully consider the dependencies in the dependency array to avoid unnecessary re-renders.
+By following these guidelines, you can effectively use useEffect with asynchronous operations and proper cleanup.
+
+
 
 
 
