@@ -592,6 +592,153 @@ ReactDOM.render(
   document.getElementById('root')
 );
 This example will render the ProductList component, displaying the details of each product in the sampleProducts array.
+===============================>
+how to fetch jwt token we are sending from the backend cookies and work on it to find email and accountType
+ChatGPT
+To fetch the JWT token from the cookies on the frontend and decode it to find the email and accountType, you can follow these steps:
+
+Set Up the Backend to Include Email and Account Type in the JWT:
+
+Ensure your backend is setting the email and accountType in the JWT when the user logs in:
+
+javascript
+Copy code
+const express = require('express');
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
+
+const app = express();
+
+app.use(express.json());
+app.use(cookieParser());
+
+const JWT_SECRET = 'your_jwt_secret';
+
+const users = {
+  user1: { password: 'password1', email: 'user1@example.com', accountType: 'admin' },
+  user2: { password: 'password2', email: 'user2@example.com', accountType: 'user' },
+};
+
+app.post('/login', (req, res) => {
+  const { username, password } = req.body;
+  
+  if (users[username] && users[username].password === password) {
+    const token = jwt.sign({ username, email: users[username].email, accountType: users[username].accountType }, JWT_SECRET, { expiresIn: '1h' });
+
+    res.cookie('jwt', token, { httpOnly: true, secure: true });
+
+    res.send('Logged in successfully!');
+  } else {
+    res.status(401).send('Invalid username or password');
+  }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
+Fetch the JWT Token from Cookies on the Frontend:
+
+Use JavaScript to fetch the JWT token from the cookies on the frontend. You can use a library like js-cookie to make this easier:
+
+bash
+Copy code
+npm install js-cookie
+javascript
+Copy code
+// Import js-cookie library
+import Cookies from 'js-cookie';
+import jwt_decode from 'jwt-decode';
+
+// Fetch the JWT token from the cookies
+const token = Cookies.get('jwt');
+
+if (token) {
+  // Decode the JWT token to get the payload
+  const decodedToken = jwt_decode(token);
+
+  // Extract email and accountType from the payload
+  const { email, accountType } = decodedToken;
+
+  console.log('Email:', email);
+  console.log('Account Type:', accountType);
+
+  // You can now use email and accountType in your frontend logic
+} else {
+  console.log('No token found');
+}
+Install jwt-decode to Decode JWT:
+
+You'll need a library to decode the JWT on the frontend. jwt-decode is a good choice:
+
+bash
+Copy code
+npm install jwt-decode
+Using the JWT Data in Your Frontend Application:
+
+You can use the extracted email and accountType in your frontend logic as needed. For example, you might want to display the user's email or customize the UI based on their account type.
+
+Here's how you can integrate the full setup in a React component:
+
+jsx
+Copy code
+import React, { useEffect, useState } from 'react';
+import Cookies from 'js-cookie';
+import jwt_decode from 'jwt-decode';
+
+const App = () => {
+  const [user, setUser] = useState({ email: '', accountType: '' });
+
+  useEffect(() => {
+    const token = Cookies.get('jwt');
+
+    if (token) {
+      const decodedToken = jwt_decode(token);
+      const { email, accountType } = decodedToken;
+
+      setUser({ email, accountType });
+    }
+  }, []);
+
+  return (
+    <div>
+      <h1>Welcome, {user.email}</h1>
+      <p>Account Type: {user.accountType}</p>
+    </div>
+  );
+};
+
+export default App;
+This component fetches the JWT from cookies, decodes it to get the email and accountType, and displays them. Adjust the logic as needed for your specific use case.
+
+'jwt')
+
+is this cookie name
+ChatGPT
+Yes, in the example provided, the cookie name is 'jwt'. This is the name used to store the JSON Web Token (JWT) in the browser's cookies.
+
+When setting the cookie in the backend:
+
+javascript
+Copy code
+res.cookie('jwt', token, { httpOnly: true, secure: true });
+And when retrieving the cookie in the frontend:
+
+javascript
+Copy code
+const token = Cookies.get('jwt');
+Both refer to the cookie named 'jwt'. You can change this name to anything you prefer, but make sure to keep it consistent between the backend and frontend. For example, if you change the name to 'authToken', update it in both places:
+
+Backend:
+
+javascript
+Copy code
+res.cookie('authToken', token, { httpOnly: true, secure: true });
+Frontend:
+
+javascript
+Copy code
+const token = Cookies.get('authToken');
 
 
 
